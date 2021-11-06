@@ -1,0 +1,204 @@
+#%RAML 1.0
+
+title: AMF Web Parser
+version: 1.0
+mediaType: application/json
+
+types: 
+  JobResult:
+    type: object
+    properties:
+      status: 
+        type: number
+        description: The same as the response status code.
+        example: 201
+      location:
+        type: string
+        description: The location of the endpoint to read the results
+        example: /job/123456qwerty
+      key:
+        type: string
+        description: The identifier of the created job. It can be used to delete a job before reading the results.
+        example: 123456qwerty
+  EntrypointOptions:
+    type: object
+    description: |
+      The object returned when the API project sent to the application have multiple possible options to select to parse the API.
+      The user should select one of the files and the application should send back the user decision back to the server.
+    properties: 
+      files: 
+        type: string[]
+        description: The list of files found in the API project that are selected to be candidates for the API entry point.
+  UpdateJob:
+    type: object
+    description: |
+      Schema used when updating a running job.
+    properties: 
+      entrypoint: 
+        type: string
+        description: |
+          The API project main file.
+  RequestError:
+    type: object
+    properties: 
+      error:
+        type: boolean
+        default: true
+        description: Indicates an error
+      code:
+        type: number
+        example: 500
+        description: The error code. It is the same as status code.
+      message: 
+        type: string
+        description: The error message.
+      detail:
+        type: string
+        description: The detailed information about the error.
+/text:
+  post:
+    description: |
+      Parses the API specification that is included in the body of the request.
+      It requires additional headers describing the API.
+    headers: 
+      content-type:
+        type: string
+        description: The API specification format mime type.
+        example: application/yaml
+      x-api-vendor:
+        type: string
+        description: The vendor name which is equivalent to AMF's vendors list.
+        examples:
+          - RAML 1.0: application/yaml
+          - OAS 2.0: application/json
+          - OAS 3.0: application/yaml
+          - ASYNC 2.0: application/yaml
+    body: 
+      text/plain:
+        description: The API specification as a plain text.
+    responses: 
+      201:
+        description: The parsing job has been scheduled. The response has a location to the results endpoint.
+        body: 
+          application/json:
+            type: JobResult
+        headers: 
+          Location:
+            description: The location to use to check the job status.
+            type: string
+      400:
+        description: Returned when the request was invalid.
+        body: 
+          application/json:
+            type: RequestError
+/file:
+  post:
+    description: |
+      Parseses a zipped API project that is transferred in the payload of the request.
+      The application tries to recognize the main file, when the `x-entrypoint` header is not set. When it discovers more than 
+      a single file the `/job` query returns the list of the candidates to present to the user to pick the main file.
+    headers:
+      x-entrypoint:
+        type: string
+        required: false
+        description: If known, the main file of the API to use with the parser.
+        example: api.raml
+    body: 
+      application/zip:
+        description: The API specification in the zipped folder.
+    responses: 
+      201:
+        description: The parsing job has been scheduled. The response has a location to the results endpoint.
+        body: 
+          application/json:
+            type: JobResult
+          headers:
+            Location:
+              description: The location to use to check the job status.
+              type: string
+      400:
+        description: Returned when the request was invalid.
+        body: 
+          application/json:
+            type: RequestError
+  
+/job/{id}:
+  get:
+    description: |
+      When the parsing result is ready the response contains the AMF graph model (LD+JSON).
+
+      When the parsing is still ongoing it returns the location of the next query.
+
+      When multiple entry points to the API project (when processing a zip file) has been found it returns
+      the list of candidates to be presented to the user.
+    responses: 
+      200:
+        description: |
+          The API has been processed and results are ready. 
+          After this call this call the application removes the job and this link is no longer valid.
+
+          The returned value is the AMF graph model represented as JSON+LD.
+        body: 
+          application/ld+json:
+            type: any
+      204:
+        description: |
+          The job is still processing and the application should repeat the call again in some time.
+        headers: 
+          Location:
+            description: The location to use with the subsequent call to the job status.
+            type: string
+      300:
+        description: |
+          This status code is returned only when the job is processing an API project read from a zip file.
+          It means that the application couldn't determine the main entry point to the API project and requesting the user to 
+          pick the main file.
+          After the entry point has been selected by the user make a PUT request to the `/job/{id}` with the entrypoint information.
+        body: 
+          application/json:
+            type: EntrypointOptions
+      404:
+        description: Returned when the job cannot be found.
+        body: 
+          application/json:
+            type: RequestError
+      425:
+        description: |
+          The client made too many requests and must wait the amount of time specified in the `Retry-After` header of the `429` response
+          returned before this response.
+      429:
+        description: |
+          The client made too many requests to the `/job` endpoint and should slow down.
+          After this status the server will return 425 status code only until the client comply with the request
+        headers: 
+          Retry-After:
+            type: number
+            required: false
+            description: |
+              The client should wait as long (in seconds) before making another request.
+  put:
+    description: |
+      Used to report the main entry point to the API after the user selected the main file.
+    body: 
+      application/json:
+        type: UpdateJob
+    responses: 
+      202:
+        description: |
+          The job has been updated and is being processed.
+        body: 
+          application/json:
+            type: JobResult
+        headers:
+            Location:
+              description: The location to use to check the job status.
+              type: string
+  delete:
+    description: |
+      Removes the job from processing and cleans up.
+      A job is automatically removed when the results has been read by the client. This should be used
+      when the user abandons the client application while awaiting for the result.
+    responses: 
+        204:
+          description: |
+            The job has been removed from the queue.
