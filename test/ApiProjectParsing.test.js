@@ -111,6 +111,7 @@ describe('Parsing the zip file content', () => {
       const { statusCode, headers, message } = result;
       assert.equal(statusCode, 200, 'has the 200 status code');
       assert.equal(headers['content-type'], 'application/ld+json', 'has the content-type header');
+      assert.equal(headers['x-api-vendor'], 'RAML 1.0', 'has the x-api-vendor header');
       const body = JSON.parse(message.toString('utf-8'));
       assert.typeOf(body, 'object', 'has the response body');
       assert.typeOf(body['@graph'], 'array', 'has the graph response');

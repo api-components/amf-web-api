@@ -8,6 +8,7 @@ import { AmfParser } from './AmfParser.js';
 /** @typedef {import('../types').AmfProcessItem} AmfProcessItem */
 /** @typedef {import('../types').ProcessingStatus} ProcessingStatus */
 /** @typedef {import('../types').ParserConfiguration} ParserConfiguration */
+/** @typedef {import('../types').ApiParsingResult} ApiParsingResult */
 
 const timerSymbol = Symbol('timerSymbol');
 
@@ -141,7 +142,7 @@ export class AmfService {
   /**
    * Reads the process' computation result.
    * @param {string} key The process key.
-   * @returns {Promise<any>} The result
+   * @returns {Promise<ApiParsingResult>} The result from the process.
    */
   async getResult(key) {
     if (!this.processes.has(key)) {

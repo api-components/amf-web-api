@@ -1,7 +1,7 @@
 {
   "name": "@api-components/amf-web-api",
   "description": "A web service parsing APIs with the AMF parser.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "license": "Apache-2.0",
   "main": "index.js",
   "module": "index.js",
@@ -42,6 +42,7 @@
     "@types/koa": "^2.13.4",
     "@types/koa__router": "^8.0.9",
     "@types/mocha": "^9.0.0",
+    "@types/unzipper": "^0.10.4",
     "@types/uuid": "^8.3.1",
     "chai": "^4.3.4",
     "chalk": "^4.1.2",

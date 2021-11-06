@@ -43,7 +43,7 @@ export class Server {
    * 
    * @param port When specified it closes a www server on a specific port. When not it stops all running http servers.
    */
-  stopHttp(port: number): Promise<void[]>;
+  stopHttp(port?: number): Promise<void[]>;
 
   /**
    * Starts the www over SSL server on a given port.
@@ -58,7 +58,7 @@ export class Server {
    * 
    * @param port When specified it closes an ssl server on a specific port. When not it stops all running https servers.
    */
-  stopSsl(port: number): Promise<void[]>;
+  stopSsl(port?: number): Promise<void[]>;
 
   /**
    * 

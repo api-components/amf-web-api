@@ -146,10 +146,12 @@ export class ApiRoutes {
     }
     if (status === 'finished') {
       const body = await this.service.getResult(key);
+      ctx.set('x-api-vendor', body.vendor);
+      const api = body.rendered;
       this.service.removeProcess(key);
       ctx.status = 200;
       ctx.type = 'application/ld+json';
-      ctx.body = body;
+      ctx.body = api;
       return;
     }
     if (status === 'running' || status === 'initialized') {

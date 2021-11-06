@@ -178,7 +178,7 @@ export class AmfParser {
     if (result.status === 'failed') {
       this.error = /** @type string */ (result.result);
     } else {
-      this.result = /** @type string */ (result.result);
+      this.result = /** @type any */ (result.result);
     }
     if (this.process.connected) {
       this.process.disconnect();

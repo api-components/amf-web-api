@@ -47,11 +47,11 @@ Notes:
 
 ### Parsing a text content
 
-This endpoints creates a task to parse the content. It does not wait for the parsing result. Instead iut returns the location of the endpoint to query for the parsing result.
+This endpoint creates a task to parse the content. It does not wait for the parsing result. Instead it returns the location of the endpoint to query for the parsing result.
 
-The `x-api-vendor` is required and it describes API vendor. It is one of the API vendors supported by the AMF parser: `RAML 0.8`, `RAML 1.0`, `OAS 2.0`, `OAS 3.0`, `AMF Graph`, `JSON Schema`, `ASYNC 2.0`.
+The `x-api-vendor` is required and it is the API vendor to use. It is one of the API vendors supported by the AMF parser: `RAML 0.8`, `RAML 1.0`, `OAS 2.0`, `OAS 3.0`, and `ASYNC 2.0`.
 
-The content type is optional and is ignored.
+The content type is optional and is ignored by the server. However, it is a good practice to keep it and set the correct value.
 
 #### Plain text request
 
@@ -91,11 +91,11 @@ Keep-Alive: timeout=5
 
 ### Parsing an API project in a zip file
 
-To parse an entire project with multiple files send the zip file as the request body.
+To parse an entire API project with multiple files send a zip file in the request body.
 
-You can set optional `x-entrypoint` header with the name of the API's main file (the entry point). When the header is not set then the server application tries to determine the best candidate using some heuristics.
+You can set an optional `x-entrypoint` header with the name of the API's main file (the entry point). When the header is not set then the server application tries to determine the best candidate using some built-in heuristics.
 
-When multiple entrypoints are found in the project then the job status endpoint returns the list of files and the client should pick one (probably involving the user). After the pick is ready the client sends the PUT request to the job status endpoint (see below).
+When multiple entrypoints are found in the project then the job status endpoint returns the list of files with the 300 status code. The client should pick one (probably involving the user). After the pick is ready the client sends the PUT request to the job status endpoint (see below).
 
 When a single endpoint is found in the API project then it is used automatically as the entrypoint. When no files are found then the process ends with an error.
 

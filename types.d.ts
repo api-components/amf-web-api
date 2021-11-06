@@ -85,3 +85,14 @@ export interface ParserConfiguration {
    */
   ttl?: number;
 }
+
+export interface ApiParsingResult {
+  /**
+   * The AMF ld+json model.
+   */
+  rendered: string;
+  /**
+   * The originating vendor.
+   */
+  vendor: ParserVendors;
+}

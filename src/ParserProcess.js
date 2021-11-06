@@ -23,6 +23,7 @@ const {
 /** @typedef {import('../types').ApiProjectParseCommand} ApiProjectParseCommand */
 /** @typedef {import('../types').ParserProcessResult} ParserProcessResult */
 /** @typedef {import('../types').ParserVendors} ParserVendors */
+/** @typedef {import('../types').ApiParsingResult} ApiParsingResult */
 
 /**
  * The child process that performs the parsing job.
@@ -55,19 +56,22 @@ class AmfParserProcess {
     const { content, vendor } = command;
     const customResourceLoader = ResourceLoaderFactory.create(new ServerResourceLoader());
     try {
-      const ro = new RenderOptions().withSourceMaps().withCompactUris().withPrettyPrint();
+      const ro = new RenderOptions().withSourceMaps().withCompactUris();
       const apiConfiguration = this.getConfiguration(vendor).withRenderOptions(ro).withResourceLoader(customResourceLoader);
       const client = apiConfiguration.baseUnitClient();
       const result = await client.parseContent(content);
 
       const wac = WebAPIConfiguration.fromSpec(result.sourceSpec);
-      const waRo = new RenderOptions().withSourceMaps().withCompactUris().withPrettyPrint();
+      const waRo = new RenderOptions().withSourceMaps().withCompactUris();
       const renderConfig = wac.withRenderOptions(waRo);
       const transformed = renderConfig.baseUnitClient().transform(result.baseUnit, PipelineId.Editing);
       const rendered = client.render(transformed.baseUnit, 'application/ld+json');
       process.send(/** @type ParserProcessResult */ ({
         status: 'finished',
-        result: rendered,
+        result: /** @type ApiParsingResult */ ({
+          rendered,
+          vendor,
+        }),
       }));
     } catch (e) {
       process.send(/** @type  ParserProcessResult */ ({
@@ -84,20 +88,23 @@ class AmfParserProcess {
     const { dir, entrypoint, vendor } = command;
     const customResourceLoader = ResourceLoaderFactory.create(new ServerResourceLoader(dir));
     try {
-      const ro = new RenderOptions().withSourceMaps().withCompactUris().withPrettyPrint();
+      const ro = new RenderOptions().withSourceMaps().withCompactUris();
       const apiConfiguration = this.getConfiguration(vendor).withRenderOptions(ro).withResourceLoader(customResourceLoader);
       const client = apiConfiguration.baseUnitClient();
       const location = path.join(dir, entrypoint);
       const result = await client.parse(`file://${location}`);
 
       const wac = WebAPIConfiguration.fromSpec(result.sourceSpec).withResourceLoader(customResourceLoader);
-      const waRo = new RenderOptions().withSourceMaps().withCompactUris().withPrettyPrint();
+      const waRo = new RenderOptions().withSourceMaps().withCompactUris();
       const renderConfig = wac.withRenderOptions(waRo);
       const transformed = renderConfig.baseUnitClient().transform(result.baseUnit, PipelineId.Editing);
       const rendered = client.render(transformed.baseUnit, 'application/ld+json');
       process.send(/** @type ParserProcessResult */ ({
         status: 'finished',
-        result: rendered,
+        result: /** @type ApiParsingResult */ ({
+          rendered,
+          vendor,
+        }),
       }));
     } catch (e) {
       process.send(/** @type  ParserProcessResult */ ({
