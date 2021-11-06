@@ -1,5 +1,6 @@
 import http from 'http';
 import https from 'https';
+import { Options as CorsOptions } from '@koa/cors';
 import { AmfParser } from './src/AmfParser';
 
 export interface AmfProcessItem {
@@ -72,6 +73,10 @@ export interface RunningServer {
 
 export interface ServerConfiguration {
   parser?: ParserConfiguration;
+  /**
+   * CORS configuration.
+   */
+  cors?: CorsConfiguration;
 }
 
 export interface ParserConfiguration {
@@ -95,4 +100,20 @@ export interface ApiParsingResult {
    * The originating vendor.
    */
   vendor: ParserVendors;
+}
+
+export interface CorsConfiguration {
+  /**
+   * When set it enables CORS headers for the API.
+   * By default it is disabled.
+   */
+  enabled?: boolean;
+  /**
+   * Optional configuration passed to `@koa/cors`.
+   * See more here: https://github.com/koajs/cors
+   * When not set it uses default values.
+   * 
+   * Note, default values apply the request's origin to the `Access-Control-Allow-Origin` header.
+   */
+  cors?: CorsOptions;
 }

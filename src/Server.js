@@ -1,8 +1,10 @@
 import Koa from 'koa';
 import http from 'http';
 import https from 'https';
+import cors from '@koa/cors';
 import { ApiRoutes } from './ApiRoutes.js';
 
+/** @typedef {import('@koa/cors').Options} CorsOptions */
 /** @typedef {import('../types').RunningServer} RunningServer */
 /** @typedef {import('../types').SupportedServer} SupportedServer */
 /** @typedef {import('../types').ServerConfiguration} ServerConfiguration */
@@ -39,7 +41,12 @@ export class Server {
    * @param {string=} prefix The prefix to use with the API routes. E.g. /api/v1
    */
   setupRoutes(prefix) {
-    const handler = new ApiRoutes(this.opts);
+    const { opts } = this;
+    if (opts.cors && opts.cors.enabled) {
+      const config = opts.cors.cors || this.defaultCorsConfig();
+      this.app.use(cors(config));
+    }
+    const handler = new ApiRoutes(opts);
     const apiRouter = handler.setup(prefix);
     this.app.use(apiRouter.routes());
     this.app.use(apiRouter.allowedMethods());
@@ -136,5 +143,14 @@ export class Server {
         resolve();
       });
     });
+  }
+
+  /**
+   * @returns {CorsOptions}
+   */
+  defaultCorsConfig() {
+    return {
+      allowMethods: 'GET,PUT,POST,DELETE',
+    };
   }
 }
