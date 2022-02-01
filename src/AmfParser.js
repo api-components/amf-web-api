@@ -5,6 +5,7 @@ import { Duplex } from 'stream';
 import unzipper from 'unzipper';
 import fs from 'fs-extra';
 import path from 'path';
+import { fileURLToPath } from 'url';
 import { ApiSearch } from './ApiSearch.js';
 
 /** @typedef {import('child_process').ChildProcess} ChildProcess */
@@ -134,8 +135,8 @@ export class AmfParser {
         execArgv: [],
         env
       };
-      const processDir = import.meta.url.replace('AmfParser.js', '').replace('file:', '');
-      const proc = fork(`${processDir}/ParserProcess.js`, options);
+      const processDir = fileURLToPath(import.meta.url).replace('AmfParser.js', '');
+      const proc = fork(path.join(processDir, 'ParserProcess.js'), options);
       // the very first message from the child process is that the process started
       // and is ready to receive data.
       proc.once('message', () => {
