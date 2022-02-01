@@ -68,7 +68,7 @@ export type SupportedServer = 'https' | 'http';
 export interface RunningServer {
   server: https.Server | http.Server;
   type: SupportedServer;
-  port: number;
+  portOrSocket: number | string;
 }
 
 export interface ServerConfiguration {

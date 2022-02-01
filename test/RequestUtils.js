@@ -57,10 +57,10 @@ export async function aTimeout(timeout=0) {
 /**
  * Do not call `end()` on the request. This function calls it when all is ready.
  * @param {ClientRequest} request
- * @param {number} port
+ * @param {number|string} portOrSocketPath
  * @returns {Promise<RequestResult>}
  */
-export async function untilParseResult(request, port) {
+export async function untilParseResult(request, portOrSocketPath) {
   const current = await untilResponse(request);
   if (current.statusCode === 200) {
     return current;
@@ -68,14 +68,19 @@ export async function untilParseResult(request, port) {
   if (![204, 201].includes(current.statusCode)) {
     throw new Error(`The process ended in an error: ${current.statusCode}.`);
   }
-  const statusRequest = http.request({
-    hostname: 'localhost',
-    port,
+  const opts = /** @type http.RequestOptions */ ({
     path: current.headers.location,
     method: 'GET',
   });
+  if (typeof portOrSocketPath === 'string') {
+    opts.socketPath = portOrSocketPath;
+  } else {
+    opts.hostname = 'localhost';
+    opts.port = portOrSocketPath;
+  }
+  const statusRequest = http.request(opts);
   await aTimeout(25);
-  return untilParseResult(statusRequest, port);
+  return untilParseResult(statusRequest, portOrSocketPath);
 }
 
 /**

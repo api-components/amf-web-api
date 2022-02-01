@@ -15,6 +15,27 @@ export class Server {
   apiHandler: ApiRoutes;
 
   /**
+   * This function can be used to create a temporary directory where a socket will be put.
+   * @returns A path to a temporary folder where the socket path can be created.
+   */
+  static createSocketPath(): Promise<string>;
+
+  /**
+   * Use this with combination with the `Server.createSocketPath()`.
+   * 
+   * ```javascript
+   * const socketName = 'my-socket.sock';
+   * const socketPath = await Server.createSocketPath();
+   * const socketLocation = Server.createPlatformSocket(socketPath, socketName);
+   * ```
+   * 
+   * @param socketPath The path to the socket.
+   * @param socketName The socket name.
+   * @returns The platform specific socket path.,
+   */
+  static createPlatformSocket(socketPath: string, socketName: string): string;
+
+  /**
    * @param opts Optional server configuration options.
    */
   constructor(opts?: ServerConfiguration);
@@ -34,38 +55,38 @@ export class Server {
 
   /**
    * Starts the www server on a given port.
-   * @param port The port number to use.
+   * @param portOrSocket The port number to use or a socket path
    */
-  startHttp(port: number): Promise<void>;
+  startHttp(portOrSocket: number|string): Promise<void>;
 
   /**
    * Stops a running www server, if any.
    * 
-   * @param port When specified it closes a www server on a specific port. When not it stops all running http servers.
+   * @param portOrSocket When specified it closes a www server on a specific port/socket. When not it stops all running http servers.
    */
-  stopHttp(port?: number): Promise<void[]>;
+  stopHttp(portOrSocket?: number|string): Promise<void[]>;
 
   /**
    * Starts the www over SSL server on a given port.
    * 
    * @param sslOptions The SSL options to use when creating the server.
-   * @param port The port number to use.
+   * @param port The port number to use or a socket path
    */
   startSsl(sslOptions: https.ServerOptions, port: number): Promise<void>;
 
   /**
    * Stops a running www over SSL server, if any.
    * 
-   * @param port When specified it closes an ssl server on a specific port. When not it stops all running https servers.
+   * @param portOrSocket When specified it closes an ssl server on a specific port/socket. When not it stops all running https servers.
    */
-  stopSsl(port?: number): Promise<void[]>;
+  stopSsl(portOrSocket?: number|string): Promise<void[]>;
 
   /**
    * 
    * @param type The server type to stop.
-   * @param port The optional port of the server.
+   * @param portOrSocket The optional port of the server.
    */
-  _stop(type: SupportedServer, port: number): Promise<void[]>;
+  _stop(type: SupportedServer, portOrSocket: number|string): Promise<void[]>;
 
   _stopServer(server: https.Server | http.Server): Promise<void>;
 }
