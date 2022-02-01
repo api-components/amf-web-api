@@ -39,7 +39,7 @@ jobs:
     name: "Publishing release"
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     needs: 
-      - test_linux
+      - test
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
