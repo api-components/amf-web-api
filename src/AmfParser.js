@@ -181,7 +181,7 @@ export class AmfParser {
     } else {
       this.result = /** @type any */ (result.result);
     }
-    if (this.process.connected) {
+    if (this.process && this.process.connected) {
       this.process.disconnect();
     }
   }
@@ -193,7 +193,7 @@ export class AmfParser {
     // console.error(err);
     this.status = 'failed';
     this.error = err.message;
-    if (this.process.connected) {
+    if (this.process && this.process.connected) {
       this.process.disconnect();
     }
   }
